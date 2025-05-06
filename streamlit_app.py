@@ -282,7 +282,7 @@ if submit_flag:
             tab1, tab2 = st.tabs(["Summary", "Read More"])
             
             with tab1:
-                results = make_prediction(form_values)
+                results = make_prediction(form_values, model, scaler, cox_model, median_risk)
                 display_results(form_values["patient_id"], results)
                 c1, c2 = st.columns(2)
                 with c1:
