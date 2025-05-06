@@ -37,7 +37,7 @@ def create_pca_for_plotting(df, input_keys):
 
 def transform_new_input_for_plotting(new_input, common_cols, scaler, pca):
     d_new = pd.DataFrame([new_input])
-    x_scaled = scaler.transform(d_new[common_cols])
+    x_scaled = plot_scaler.transform(d_new[common_cols])
     x_pca = pca.transform(x_scaled)
     return x_pca[0, 0], x_pca[0, 1]
 
@@ -271,7 +271,7 @@ if submit_flag:
             tab1, tab2 = st.tabs(["Summary", "Read More"])
             
             with tab1:
-                results = make_prediction(form_values, model, scaler, cox_model, median_risk)
+                results = make_prediction(form_values)
                 display_results(form_values["patient_id"], results)
                 c1, c2 = st.columns(2)
                 with c1:
