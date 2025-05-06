@@ -277,7 +277,7 @@ if submit_flag:
             with tab1:
                 results = make_prediction(form_values)
                 display_results(form_values["patient_id"], results)
-                st.badge("⚠️ The distributions shown below are simulated and do not reflect the actual data used to train or evaluate the model. They were generated to approximate real‑world patterns while preserving data privacy.",
+                st.badge("⚠️ The distributions **shown below** are simulated and **do not reflect the actual data** used to train or evaluate the model. They were generated to approximate real‑world patterns while preserving data privacy.",
                          color="gray")
                 c1, c2 = st.columns(2)
                 with c1:
