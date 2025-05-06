@@ -21,6 +21,12 @@ scaler = joblib.load("scaler.pkl")
 median_risk = joblib.load("median_risk.pkl")
 data = pd.read_csv("synthetic_data.csv")
 
+
+
+
+
+
+
 def create_pca_for_plotting(df, input_keys):    
     # copy & select only the keys that actually exist
     d = df.copy()
@@ -299,7 +305,9 @@ if submit_flag:
                 st.write("ℹ️ This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
-             
+
+
+
 if save_flag:
     st.info("Saving functionality is currently disabled.")
 
