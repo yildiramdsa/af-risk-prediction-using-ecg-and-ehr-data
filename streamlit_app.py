@@ -209,20 +209,20 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Events and Procedures")
-        c7, c8, c9 = st.columns(3)
-        form_values["event_cv_hf_admission_icd10_prior"] = 1 if c7.checkbox("Heart failure admission") else 0
-        form_values["event_cv_cad_acs_acute_mi_icd10_prior"] = 1 if c7.checkbox("Acute myocardial infarction") else 0
-        form_values["event_cv_cad_acs_unstable_angina_icd10_prior"] = 1 if c7.checkbox("Unstable angina") else 0
-        form_values["event_cv_cad_acs_other_icd10_prior"] = 1 if c8.checkbox("Other acute coronary syndrome") else 0
-        form_values["event_cv_ep_vt_any_icd10_prior"] = 1 if c8.checkbox("Ventricular tachycardia") else 0
-        form_values["event_cv_ep_sca_survived_icd10_cci_prior"] = 1 if c8.checkbox("Survived sudden cardiac arrest") else 0
-        form_values["event_cv_cns_stroke_ischemic_icd10_prior"] = 1 if c9.checkbox("Acute ischemic stroke") else 0
-        form_values["event_cv_cns_stroke_hemorrh_icd10_prior"] = 1 if c9.checkbox("Acute hemorrhagic stroke") else 0
-        form_values["event_cv_cns_tia_icd10_prior"] = 1 if c9.checkbox("Transient ischemic attack (TIA)") else 0
-        form_values["pci_prior"] = 1 if c9.checkbox("Percutaneous coronary intervention (PCI)") else 0
-        form_values["cabg_prior"] = 1 if c7.checkbox("Coronary artery bypass grafting (CABG)") else 0
-        form_values["transplant_heart_cci_prior"] = 1 if c8.checkbox("Heart transplantation") else 0
-        form_values["lvad_cci_prior"] = 1 if c7.checkbox("LVAD implantation") else 0
+        c1_ced, c2_ced, c3_ced = st.columns(3)
+        form_values["event_cv_hf_admission_icd10_prior"] = 1 if c1_ced.checkbox("Heart failure admission") else 0
+        form_values["event_cv_cad_acs_acute_mi_icd10_prior"] = 1 if c1_ced.checkbox("Acute myocardial infarction") else 0
+        form_values["event_cv_cad_acs_unstable_angina_icd10_prior"] = 1 if c1_ced.checkbox("Unstable angina") else 0
+        form_values["event_cv_cad_acs_other_icd10_prior"] = 1 if c1_ced.checkbox("Other acute coronary syndrome") else 0
+        form_values["event_cv_ep_vt_any_icd10_prior"] = 1 if c2_ced.checkbox("Ventricular tachycardia") else 0
+        form_values["event_cv_ep_sca_survived_icd10_cci_prior"] = 1 if c2_ced.checkbox("Survived sudden cardiac arrest") else 0
+        form_values["event_cv_cns_stroke_ischemic_icd10_prior"] = 1 if c2_ced.checkbox("Acute ischemic stroke") else 0
+        form_values["event_cv_cns_stroke_hemorrh_icd10_prior"] = 1 if c2_ced.checkbox("Acute hemorrhagic stroke") else 0
+        form_values["event_cv_cns_tia_icd10_prior"] = 1 if c2_ced.checkbox("Transient ischemic attack (TIA)") else 0
+        form_values["pci_prior"] = 1 if c3_ced.checkbox("Percutaneous coronary intervention (PCI)") else 0
+        form_values["cabg_prior"] = 1 if c3_ced.checkbox("Coronary artery bypass grafting (CABG)") else 0
+        form_values["transplant_heart_cci_prior"] = 1 if c3_ced.checkbox("Heart transplantation") else 0
+        form_values["lvad_cci_prior"] = 1 if c3_ced.checkbox("LVAD implantation") else 0
         st.divider()
 
         st.subheader("Cardiovascular Devices")
