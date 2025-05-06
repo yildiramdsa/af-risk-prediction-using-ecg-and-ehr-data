@@ -227,9 +227,9 @@ def render_form():
 
         st.subheader("Cardiovascular Devices")
         cdev_c1, cdev_c2, cdev_c3 = st.columns(3)
-        form_values["pacemaker_permanent_cci_prior"] = 1 if st.checkbox("Prior permanent pacemaker implantation") else 0
-        form_values["crt_cci_prior"] = 1 if st.checkbox("Prior cardiac resynchronization therapy (CRT) implantation") else 0
-        form_values["icd_cci_prior"] = 1 if st.checkbox("Prior internal cardioverter defibrillator (ICD) implantation") else 0
+        form_values["pacemaker_permanent_cci_prior"] = 1 if cdev_c1.checkbox("Prior permanent pacemaker implantation") else 0
+        form_values["crt_cci_prior"] = 1 if cdev_c2.checkbox("Prior cardiac resynchronization therapy (CRT) implantation") else 0
+        form_values["icd_cci_prior"] = 1 if cdev_c3.checkbox("Prior internal cardioverter defibrillator (ICD) implantation") else 0
         st.divider()
 
         st.subheader("12 Lead ECG Information")
