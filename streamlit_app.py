@@ -282,7 +282,15 @@ if submit_flag:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
             with tab2:
-                st.write("This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
+                    with st.expander("📖 ECG Feature Definitions"):
+                        st.markdown(
+                            """
+                            - **Heart Rate (bpm)**: Number of heartbeats per minute.  
+                            - **PR Interval (ms)**: Time from atrial to ventricular depolarization.  
+                            - **QRS Duration (ms)**: Duration of ventricular depolarization.  
+                            - **QTc Interval (ms)**: Corrected measure of ventricular repolarization.
+                            """
+                        )
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
 
