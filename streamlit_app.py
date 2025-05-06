@@ -18,12 +18,6 @@ st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 model = joblib.load("model.pkl")
 data = pd.read_csv("synthetic_data.csv")
 
-
-
-
-
-
-
 def create_pca_for_plotting(df, input_keys):    
     # copy & select only the keys that actually exist
     d = df.copy()
@@ -58,7 +52,7 @@ def plot_pca_with_af_colors(df_plot, x_new, y_new):
     ax.set_title("PCA Plot, Highlighting New Patient")
     ax.legend()
     st.pyplot(fig)
- 
+
 def make_prediction(form_values):
     input_data = pd.DataFrame([form_values])
     if hasattr(model, "predict_proba"):
@@ -169,10 +163,6 @@ mandatory_fields = [
     "ecg_resting_qtc"
 ]
 
-
-
-
-
 img_c1, img_c2, img_c3 = st.columns(3)
 with img_c2:
     st.image("title.png", width=300)
@@ -270,11 +260,6 @@ if submit_flag:
         df_input = pd.DataFrame([form_values])
         try:
             tab1, tab2 = st.tabs(["Summary", "Read More"])
-
-
-
-
-            
             with tab1:
                 pred, score, life_yrs = make_prediction(form_values)
                 display_results(form_values["patient_id"], pred, score, life_yrs)
@@ -286,26 +271,16 @@ if submit_flag:
                     x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, plot_scaler, pca)
                     plot_pca_with_af_colors(df_plot, x_new, y_new)
                 with c2:
-                    plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age Distribution")
+                    plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age (years)")
 
-                st.subheader("ECG Feature Distributions Compared to AFib Population")
+                st.subheader("ECG Feature Distributions by AFib Outcome")
                 c1, c2 = st.columns(2)
                 with c1:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (HR) Distribution")
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration Distribution")
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (bpm)")
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration (ms)")
                 with c2:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
-                st.subheader("ECG Feature Distributions Compared to AFib Population")
-                c1, c2, c3, c4 = st.columns(2)
-                with c1:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (HR) Distribution")
-                with c2:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration Distribution")
-                with c3:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
-                with c4:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
             with tab2:
                 st.write("This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
         except Exception as e:
