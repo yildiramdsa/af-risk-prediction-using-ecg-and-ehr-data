@@ -192,7 +192,7 @@ def unique_key(base):
 
 def render_form():
     with st.form(key=st.session_state["form_key"], clear_on_submit=False):
-        st.subheader("Patient Information")
+        st.subheader("Patient ID & Demographics")
         pi_c1, pi_c2, pi_c3 = st.columns(3)
         form_values["patient_id"] = pi_c1.text_input("Enter the Patient ID ⚠️", key=unique_key("patient_id"))
         g_options = {"Male": 0, "Female": 1}
@@ -202,6 +202,7 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Diseases")
+        st.caption("Check all applicable options.")
         cd_c1, cd_c2, cd_c3 = st.columns(3)
         form_values["myocarditis_icd10_prior"] = 1 if cd_c1.checkbox("Myocarditis - acute") else 0
         form_values["pericarditis_icd10_prior"] = 1 if cd_c2.checkbox("Pericarditis - acute") else 0
@@ -209,12 +210,13 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Events and Procedures")
+        st.caption("Check all applicable options.")
         c1_ced, c2_ced, c3_ced = st.columns(3)
         form_values["event_cv_hf_admission_icd10_prior"] = 1 if c1_ced.checkbox("Heart failure admission") else 0
         form_values["event_cv_cad_acs_acute_mi_icd10_prior"] = 1 if c1_ced.checkbox("Acute myocardial infarction") else 0
         form_values["event_cv_cad_acs_unstable_angina_icd10_prior"] = 1 if c1_ced.checkbox("Unstable angina") else 0
         form_values["event_cv_cad_acs_other_icd10_prior"] = 1 if c1_ced.checkbox("Other acute coronary syndrome") else 0
-        form_values["event_cv_ep_vt_any_icd10_prior"] = 1 if c2_ced.checkbox("Ventricular tachycardia") else 0
+        form_values["event_cv_ep_vt_any_icd10_prior"] = 1 if c1_ced.checkbox("Ventricular tachycardia") else 0
         form_values["event_cv_ep_sca_survived_icd10_cci_prior"] = 1 if c2_ced.checkbox("Survived sudden cardiac arrest") else 0
         form_values["event_cv_cns_stroke_ischemic_icd10_prior"] = 1 if c2_ced.checkbox("Acute ischemic stroke") else 0
         form_values["event_cv_cns_stroke_hemorrh_icd10_prior"] = 1 if c2_ced.checkbox("Acute hemorrhagic stroke") else 0
@@ -226,32 +228,34 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Devices")
+        st.caption("Check all applicable options.")
         cdev_c1, cdev_c2, cdev_c3 = st.columns(3)
         form_values["pacemaker_permanent_cci_prior"] = 1 if cdev_c1.checkbox("Prior permanent pacemaker implantation") else 0
         form_values["crt_cci_prior"] = 1 if cdev_c2.checkbox("Prior cardiac resynchronization therapy (CRT) implantation") else 0
         form_values["icd_cci_prior"] = 1 if cdev_c3.checkbox("Prior internal cardioverter defibrillator (ICD) implantation") else 0
         st.divider()
 
-        st.subheader("12 Lead ECG Information")
-        c10, c11 = st.columns(2)
-        form_values["ecg_resting_hr"] = c10.number_input("Enter the Heart rate ⚠️", step=1, value=None)
-        form_values["ecg_resting_pr"] = c10.number_input("Enter the PR interval duration ⚠️", min_value=0, value=None)
-        form_values["ecg_resting_qrs"] = c11.number_input("Enter the QRS complex duration ⚠️", min_value=0, value=None)
-        form_values["ecg_resting_qtc"] = c11.number_input("Enter the Corrected QT interval ⚠️", min_value=0, value=None)
+        st.subheader("12-Lead ECG Measurements")
+        ecg_c1, ecg_c2 = st.columns(2)
+        form_values["ecg_resting_hr"] = ecg_c1.number_input("Enter the Heart rate ⚠️", step=1, value=None)
+        form_values["ecg_resting_pr"] = ecg_c1.number_input("Enter the PR interval duration ⚠️", min_value=0, value=None)
+        form_values["ecg_resting_qrs"] = ecg_c2.number_input("Enter the QRS complex duration ⚠️", min_value=0, value=None)
+        form_values["ecg_resting_qtc"] = ecg_c2.number_input("Enter the Corrected QT interval ⚠️", min_value=0, value=None)
         
-        st.subheader("Heart Rhythm and QRS Morphology")
-        c12, c13, c14 = st.columns(3)
-        form_values["ecg_resting_paced"] = 1 if c12.checkbox("Paced") else 0
-        form_values["ecg_resting_bigeminy"] = 1 if c12.checkbox("Bigeminy") else 0
-        form_values["ecg_resting_LBBB"] = 1 if c13.checkbox("LBBB") else 0
-        form_values["ecg_resting_RBBB"] = 1 if c13.checkbox("RBBB") else 0
-        form_values["ecg_resting_incomplete_LBBB"] = 1 if c13.checkbox("Incomplete LBBB") else 0
-        form_values["ecg_resting_incomplete_RBBB"] = 1 if c13.checkbox("Incomplete RBBB") else 0
-        form_values["ecg_resting_LAFB"] = 1 if c14.checkbox("LAFB") else 0
-        form_values["ecg_resting_LPFB"] = 1 if c14.checkbox("LPFB") else 0
-        form_values["ecg_resting_bifascicular_block"] = 1 if c14.checkbox("Bifascicular Block") else 0
-        form_values["ecg_resting_trifascicular_block"] = 1 if c14.checkbox("Trifascicular Block") else 0
-        form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if c12.checkbox("Intraventricular Conduction Delay") else 0
+        st.subheader("ECG Morphology & Conduction")
+        st.caption("Check all applicable options.")
+        ecg_c3, ecg_c4, ecg_c5 = st.columns(3)
+        form_values["ecg_resting_paced"] = 1 if ecg_c3.checkbox("Paced") else 0
+        form_values["ecg_resting_bigeminy"] = 1 if ecg_c3.checkbox("Bigeminy") else 0
+        form_values["ecg_resting_LBBB"] = 1 if ecg_c3.checkbox("LBBB") else 0
+        form_values["ecg_resting_RBBB"] = 1 if ecg_c3.checkbox("RBBB") else 0
+        form_values["ecg_resting_incomplete_LBBB"] = 1 if ecg_c4.checkbox("Incomplete LBBB") else 0
+        form_values["ecg_resting_incomplete_RBBB"] = 1 if ecg_c4.checkbox("Incomplete RBBB") else 0
+        form_values["ecg_resting_LAFB"] = 1 if ecg_c4.checkbox("LAFB") else 0
+        form_values["ecg_resting_LPFB"] = 1 if ecg_c4.checkbox("LPFB") else 0
+        form_values["ecg_resting_bifascicular_block"] = 1 if ecg_c5.checkbox("Bifascicular Block") else 0
+        form_values["ecg_resting_trifascicular_block"] = 1 if ecg_c5.checkbox("Trifascicular Block") else 0
+        form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if ecg_c5.checkbox("Intraventricular Conduction Delay") else 0
         
         submit_flag = st.form_submit_button("Submit for Risk Prediction 🚀")
         save_flag = st.form_submit_button("Save Patient Record ☁️")
