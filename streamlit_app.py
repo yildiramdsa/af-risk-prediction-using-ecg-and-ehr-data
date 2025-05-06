@@ -21,7 +21,7 @@ scaler = joblib.load("scaler.pkl")
 median_risk = joblib.load("median_risk.pkl")
 data = pd.read_csv("synthetic_data.csv")
 
-def create_pca_for_plotting(df: pd.DataFrame, input_keys: list):
+def create_pca_for_plotting(df, input_keys):    
     # copy & select only the keys that actually exist
     d = df.copy()
     common_cols = [c for c in d.columns if c in input_keys]
@@ -33,20 +33,15 @@ def create_pca_for_plotting(df: pd.DataFrame, input_keys: list):
     x_pca = pca.fit_transform(x_scaled)
     d["PC1"] = x_pca[:, 0]
     d["PC2"] = x_pca[:, 1]
-    return d, plot_scaler, pca, common_cols
+    return d, common_cols, plot_scaler, pca
 
-def transform_new_input_for_plotting(new_input: dict,
-                                     common_cols: list,
-                                     scaler: StandardScaler,
-                                     pca: PCA):
+def transform_new_input_for_plotting(new_input, common_cols, scaler, pca):
     d_new = pd.DataFrame([new_input])
     x_scaled = scaler.transform(d_new[common_cols])
     x_pca = pca.transform(x_scaled)
     return x_pca[0, 0], x_pca[0, 1]
 
-def plot_pca_with_af_colors(df_plot: pd.DataFrame,
-                            x_new: float,
-                            y_new: float):
+def plot_pca_with_af_colors(df_plot, x_new, y_new):
     fig, ax = plt.subplots(figsize=(8, 5))
     df_yes = df_plot[df_plot["outcome_afib_aflutter_new_post"] == 1]
     df_no  = df_plot[df_plot["outcome_afib_aflutter_new_post"] == 0]
@@ -60,32 +55,28 @@ def plot_pca_with_af_colors(df_plot: pd.DataFrame,
     ax.set_title("PCA Plot, Highlighting New Patient")
     ax.legend()
     st.pyplot(fig)
-
-def make_prediction(form_values: dict, model, scaler: StandardScaler, cox_model, median_log_hazard: float) -> dict:
-    input_df = pd.DataFrame([form_values])
-    if "patient_id" in input_df.columns:
-        input_df = input_df.drop(columns="patient_id")
+    
+def make_prediction(form_values):
+    input_df = pd.DataFrame([form_values]).drop(columns=["patient_id"])
     if hasattr(model, "predict_proba"):
-        prob_risk = float(model.predict_proba(input_df)[:, 1])
+        prob_risk = model.predict_proba(input_df)[0][1]
     else:
-        prob_risk = float(model.predict(input_df))
-    if prob_risk <= 0.33:
+        prob_risk = model.predict(input_df)[0]
+    if prob_risk < 0.5:
         prob_level = "🟢 Low"
-    elif prob_risk <= 0.66:
-        prob_level = "🟡 Medium"
     else:
         prob_level = "🔴 High"
-    X_scaled = scaler.transform(input_df)
-    hazard_score = float(cox_model.predict_partial_hazard(X_scaled))
-    log_hazard = np.log1p(hazard_score)
-    hazard_level = "🔴 High" if log_hazard >= median_log_hazard else "🟢 Low"
-    afib_free_years = max(0.0, (1 - hazard_score) * 10)
+    input_scaled = scaler.transform(input_df)
+    hazard_score = cox_model.predict_partial_hazard(input_scaled)[0]
+    log_risk = np.log1p(hazard_score)
+    hazard_level = "🔴 High" if log_risk >= median_risk else "🟢 Low"
+    estimated_afib_free_years = max(0, (1 - hazard_score) * 10)
     return {
-        "prob_score":      prob_risk,
-        "prob_level":      prob_level,
-        "hazard_score":    hazard_score,
-        "hazard_level":    hazard_level,
-        "afib_free_years": afib_free_years,
+        "prob_level": prob_level,
+        "prob_score": prob_risk,
+        "hazard_level": hazard_level,
+        "hazard_score": hazard_score,
+        "afib_free_years": estimated_afib_free_years
     }
 
 def display_results(pid, results):
@@ -211,10 +202,10 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Diseases")
-        c1, c2, c3 = st.columns(3)
-        form_values["myocarditis_icd10_prior"] = 1 if c2.checkbox("Myocarditis - acute") else 0
-        form_values["pericarditis_icd10_prior"] = 1 if c3.checkbox("Pericarditis - acute") else 0
-        form_values["aortic_dissection_icd10_prior"] = 1 if c1.checkbox("Aortic dissection") else 0
+        cd_c1, cd_c2, cd_c3 = st.columns(3)
+        form_values["myocarditis_icd10_prior"] = 1 if cd_c1.checkbox("Myocarditis - acute") else 0
+        form_values["pericarditis_icd10_prior"] = 1 if cd_c2.checkbox("Pericarditis - acute") else 0
+        form_values["aortic_dissection_icd10_prior"] = 1 if cd_c3.checkbox("Aortic dissection") else 0
         st.divider()
 
         st.subheader("Cardiovascular Events and Procedures")
@@ -235,6 +226,7 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Devices")
+        cdev_c1, cdev_c2, cdev_c3 = st.columns(3)
         form_values["pacemaker_permanent_cci_prior"] = 1 if st.checkbox("Prior permanent pacemaker implantation") else 0
         form_values["crt_cci_prior"] = 1 if st.checkbox("Prior cardiac resynchronization therapy (CRT) implantation") else 0
         form_values["icd_cci_prior"] = 1 if st.checkbox("Prior internal cardioverter defibrillator (ICD) implantation") else 0
