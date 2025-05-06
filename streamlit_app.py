@@ -33,7 +33,7 @@ def create_pca_for_plotting(df, input_keys):
     x_pca = pca.fit_transform(x_scaled)
     d["PC1"] = x_pca[:, 0]
     d["PC2"] = x_pca[:, 1]
-    return d, common_cols, plot_scaler, pca
+    return d, plot_scaler, pca, common_cols
 
 def transform_new_input_for_plotting(new_input, common_cols, scaler, pca):
     d_new = pd.DataFrame([new_input])
