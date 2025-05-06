@@ -263,8 +263,6 @@ if submit_flag:
             with tab1:
                 pred, score, life_yrs = make_prediction(form_values)
                 display_results(form_values["patient_id"], pred, score, life_yrs)
-                st.badge("⚠️ The distributions **shown below** are simulated and **do not reflect the actual data** used to train or evaluate the model. They were generated to approximate real‑world patterns while preserving data privacy.",
-                         color="gray")
                 c1, c2 = st.columns(2)
                 with c1:
                     df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
@@ -281,6 +279,8 @@ if submit_flag:
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
+            st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
+                         color="gray")
             with tab2:
                 st.header("About the Models & Visualizations")
                 with st.expander("AFib Risk Classifier"):
