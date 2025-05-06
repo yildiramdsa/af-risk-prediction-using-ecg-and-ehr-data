@@ -210,16 +210,14 @@ def render_form():
         form_values["demographics_age_index_ecg"] = pi_c3.number_input("Enter the age ⚠️", min_value=0, max_value=120, value=0)
         st.divider()
 
-        st.subheader("History of Cardiovascular Diseases")
-        st.caption("Observations recorded at any time prior to or within 6 months after the index ECG.")
+        st.subheader("Cardiovascular Diseases")
         c1, c2, c3 = st.columns(3)
         form_values["myocarditis_icd10_prior"] = 1 if c2.checkbox("Myocarditis - acute") else 0
         form_values["pericarditis_icd10_prior"] = 1 if c3.checkbox("Pericarditis - acute") else 0
         form_values["aortic_dissection_icd10_prior"] = 1 if c1.checkbox("Aortic dissection") else 0
         st.divider()
 
-        st.subheader("Prior Cardiovascular Events and Procedures")
-        st.caption("Observations recorded at any time prior to the index ECG.")
+        st.subheader("Cardiovascular Events and Procedures")
         c7, c8, c9 = st.columns(3)
         form_values["event_cv_hf_admission_icd10_prior"] = 1 if c7.checkbox("Heart failure admission") else 0
         form_values["event_cv_cad_acs_acute_mi_icd10_prior"] = 1 if c7.checkbox("Acute myocardial infarction") else 0
@@ -237,7 +235,6 @@ def render_form():
         st.divider()
 
         st.subheader("Cardiovascular Devices")
-        st.caption("Observations recorded at any time prior to the index ECG.")
         form_values["pacemaker_permanent_cci_prior"] = 1 if st.checkbox("Prior permanent pacemaker implantation") else 0
         form_values["crt_cci_prior"] = 1 if st.checkbox("Prior cardiac resynchronization therapy (CRT) implantation") else 0
         form_values["icd_cci_prior"] = 1 if st.checkbox("Prior internal cardioverter defibrillator (ICD) implantation") else 0
@@ -265,7 +262,7 @@ def render_form():
         form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if c12.checkbox("Intraventricular Conduction Delay") else 0
         
         submit_flag = st.form_submit_button("Submit for Risk Prediction 🚀")
-        save_flag = st.form_submit_button("Save Patient Record to S3 ☁️")
+        save_flag = st.form_submit_button("Save Patient Record ☁️")
         return submit_flag, save_flag
 
 form_container = st.empty()
@@ -310,7 +307,7 @@ if submit_flag:
             st.error(f"An error occurred during prediction: {e}")
              
 if save_flag:
-    st.info("Saving to S3 is currently disabled in this environment.")
+    st.info("Saving functionality is currently disabled.")
 
 if st.button("Clear Form for New Entry 🗑️", key="clear_form_btn"):
     st.session_state["form_key"] = str(uuid.uuid4())
