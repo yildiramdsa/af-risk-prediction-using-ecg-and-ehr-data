@@ -293,10 +293,8 @@ if submit_flag:
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
-                st.info(
-                    "⚠️ The dataset shown here is simulated and does **not** represent the actual data used to train and evaluate the model. "
-                    "It was generated to approximate real-world distributions while maintaining data privacy."
-                )
+                st.badge("⚠️ The dataset shown here is simulated and does **not** represent the actual data used to train and evaluate the model. It was generated to approximate real-world distributions while maintaining data privacy.",
+                         color="gray")
             with tab2:
                 st.write("ℹ️ This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
         except Exception as e:
