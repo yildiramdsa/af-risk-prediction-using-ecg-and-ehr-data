@@ -182,7 +182,7 @@ img_c1, img_c2, img_c3 = st.columns(3)
 with img_c2:
     st.image("title.png", width=300)
 st.title("Risk Prediction for Atrial Fibrillation")
-st.badge("All fields marked with ⚠️ are required. Please fill them out before submitting.", color="orange")
+st.badge("All fields marked with ⚠️ are required. Please fill them out before submitting.", color="gray")
 
 if "form_key" not in st.session_state:
     st.session_state["form_key"] = str(uuid.uuid4())
