@@ -283,9 +283,9 @@ if submit_flag:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
             with tab2:
                 st.header("About the Models & Visualizations")
-                with st.expander("AFib Risk Classifier")
+                with st.expander("AFib Risk Classifier"):
                     st.write("We use a gradient‑boosted tree model (e.g. XGBoost) trained on ECG measurements and key clinical history flags to estimate your probability of new‑onset AFib. The output is shown as a color‑coded risk level (🟢 Low, 🟡 Medium, 🔴 High).")
-                with st.expander("PCA Projection")
+                with st.expander("PCA Projection"):
                     st.write("Principal Component Analysis (PCA) reduces your multi‑dimensional feature profile into two axes (PC1 & PC2) that capture the greatest variance in the training data. Each dot is one patient, colored by whether AFib occurred. Your position (large red dot) shows how your combined ECG/clinical features compare.")
                 with st.expander("Data Disclaimer"):
                     st.write("All distributions and PCA backdrops are generated from a *synthetic* dataset and do **not** reflect any real patient records. They exist solely to illustrate how your profile sits within a plausible population while preserving privacy.")
