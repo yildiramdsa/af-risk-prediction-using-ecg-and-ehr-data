@@ -282,7 +282,7 @@ if submit_flag:
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
-            st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
+                st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
                          color="gray")
             
             with tab2:
