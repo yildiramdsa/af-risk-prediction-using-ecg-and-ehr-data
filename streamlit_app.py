@@ -35,7 +35,7 @@ def create_pca_for_plotting(df, input_keys):
     d["PC2"] = x_pca[:, 1]
     return d, plot_scaler, pca, common_cols
 
-def transform_new_input_for_plotting(new_input, common_cols, scaler, pca):
+def transform_new_input_for_plotting(new_input, common_cols, plot_scaler, pca):
     d_new = pd.DataFrame([new_input])
     x_scaled = plot_scaler.transform(d_new[common_cols])
     x_pca = pca.transform(x_scaled)
@@ -275,12 +275,12 @@ if submit_flag:
                 display_results(form_values["patient_id"], results)
                 c1, c2 = st.columns(2)
                 with c1:
-                    df_plot, scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
-                    x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, scaler, pca)
+                    df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
+                    x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, plot_scaler, pca)
                     plot_pca_with_af_colors(df_plot, x_new, y_new)
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age Distribution")
-            
+
                 st.subheader("ECG Feature Distributions Compared to AFib Population")
                 c1, c2 = st.columns(2)
                 with c1:
