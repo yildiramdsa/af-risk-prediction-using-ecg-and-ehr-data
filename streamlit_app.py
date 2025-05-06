@@ -16,9 +16,6 @@ from custom_transformers import PreprocessDataTransformer
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
 model = joblib.load("model.pkl")
-cox_model = joblib.load("cox_model.pkl")
-scaler = joblib.load("scaler.pkl")
-median_risk = joblib.load("median_risk.pkl")
 data = pd.read_csv("synthetic_data.csv")
 
 
@@ -61,40 +58,28 @@ def plot_pca_with_af_colors(df_plot, x_new, y_new):
     ax.set_title("PCA Plot, Highlighting New Patient")
     ax.legend()
     st.pyplot(fig)
-    
+ 
 def make_prediction(form_values):
-    input_df = pd.DataFrame([form_values]).drop(columns=["patient_id"])
+    input_data = pd.DataFrame([form_values])
     if hasattr(model, "predict_proba"):
-        prob_risk = model.predict_proba(input_df)[0][1]
+        risk_score = model.predict_proba(input_data)[:, 1][0]
     else:
-        prob_risk = model.predict(input_df)[0]
-    if prob_risk < 0.5:
-        prob_level = "🟢 Low"
+        risk_score = model.predict(input_data)[0]
+    if risk_score <= 0.33:
+        prediction = "🟢 Low Risk"
+    elif risk_score <= 0.66:
+        prediction = "🟡 Medium Risk"
     else:
-        prob_level = "🔴 High"
-    input_scaled = scaler.transform(input_df)
-    hazard_score = cox_model.predict_partial_hazard(input_scaled)[0]
-    log_risk = np.log1p(hazard_score)
-    hazard_level = "🔴 High" if log_risk >= median_risk else "🟢 Low"
-    estimated_afib_free_years = max(0, (1 - hazard_score) * 10)
-    return {
-        "prob_level": prob_level,
-        "prob_score": prob_risk,
-        "hazard_level": hazard_level,
-        "hazard_score": hazard_score,
-        "afib_free_years": estimated_afib_free_years
-    }
+        prediction = "🔴 High Risk"
+    estimated_life_years = (1 - risk_score) * 10
+    return prediction, risk_score, estimated_life_years
 
-def display_results(pid, results):
+def display_results(pid, prediction, risk_score, estimated_life_years):
     st.subheader(f"Prediction Summary for Patient: `{pid}`")
     c1, c2, c3 = st.columns(3)
-    c1.metric("Probabilistic Risk Level:", results["prob_level"])
-    c2.metric("Predicted Probability:", f"{results['prob_score']:.2f}")
-    c3.metric("Expected AFib-Free Years:", f"{results['afib_free_years']:.1f} yrs")
-
-    c4, c5 = st.columns(2)
-    c4.metric("Survival Risk Level:", results["hazard_level"])
-    c5.metric("Partial Hazard Score:", f"{results['hazard_score']:.4f}")
+    c1.metric("AFib Risk Level:", prediction)
+    c2.metric("Risk Probability:", f"{risk_score:.2f}")
+    c3.metric("Expected AFib-Free Years", f"{estimated_life_years:.1f} yrs")
 
 def plot_distribution_with_afib_hue(df, form_values, feature_name, title):
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -291,8 +276,8 @@ if submit_flag:
 
             
             with tab1:
-                results = make_prediction(form_values)
-                display_results(form_values["patient_id"], results)
+                pred, score, life_yrs = make_prediction(form_values)
+                display_results(form_values["patient_id"], pred, score, life_yrs)
                 st.badge("⚠️ The distributions **shown below** are simulated and **do not reflect the actual data** used to train or evaluate the model. They were generated to approximate real‑world patterns while preserving data privacy.",
                          color="gray")
                 c1, c2 = st.columns(2)
