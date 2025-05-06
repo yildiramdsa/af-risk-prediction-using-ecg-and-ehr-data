@@ -256,10 +256,13 @@ with form_container:
 if submit_flag:
     if any(not is_valid(form_values[f]) for f in mandatory_fields):
         st.error("Please complete all mandatory fields with valid values.")
+        
     else:
         df_input = pd.DataFrame([form_values])
+        
         try:
             tab1, tab2 = st.tabs(["Summary", "Read More"])
+            
             with tab1:
                 pred, score, life_yrs = make_prediction(form_values)
                 display_results(form_values["patient_id"], pred, score, life_yrs)
@@ -281,14 +284,58 @@ if submit_flag:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
             st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
                          color="gray")
+            
             with tab2:
-                st.header("About the Models & Visualizations")
-                with st.expander("AFib Risk Classifier"):
-                    st.write("We use a gradient‑boosted tree model (e.g. XGBoost) trained on ECG measurements and key clinical history flags to estimate your probability of new‑onset AFib. The output is shown as a color‑coded risk level (🟢 Low, 🟡 Medium, 🔴 High).")
-                with st.expander("PCA Projection"):
-                    st.write("Principal Component Analysis (PCA) reduces your multi‑dimensional feature profile into two axes (PC1 & PC2) that capture the greatest variance in the training data. Each dot is one patient, colored by whether AFib occurred. Your position (large red dot) shows how your combined ECG/clinical features compare.")
-                with st.expander("Data Disclaimer"):
-                    st.write("All distributions and PCA backdrops are generated from a *synthetic* dataset and do **not** reflect any real patient records. They exist solely to illustrate how your profile sits within a plausible population while preserving privacy.")
+                st.header("Learn More About the Dashboard")
+                with st.expander("Risk Model & Feature Set"):
+                    st.markdown(
+                        """
+                        We use an **XGBoost** classifier trained on the following feature groups to estimate your AFib risk:
+                        
+                        - **Demographics**: Age at ECG, Biological sex  
+                        - **Disease History**: Acute myocarditis, Pericarditis, Aortic dissection  
+                        - **Events & Procedures**: Heart failure admission, Acute MI, Unstable angina, Stroke, TIA, PCI, CABG, LVAD implantation, Heart transplantation  
+                        - **Implanted Devices**: Permanent pacemaker, CRT device, Implantable cardioverter‑defibrillator (ICD)  
+                        - **ECG Measurements**: Heart Rate (bpm), PR Interval (ms), QRS Duration (ms), QTc Interval (ms)  
+                        - **ECG Conduction Flags**: Paced rhythm, Bigeminy, LBBB, RBBB, Incomplete blocks, LAFB, LPFB, Bifascicular/Trifascicular block, Conduction delay  
+            
+                        The model outputs a probability of new‑onset AFib, displayed as Low 🟢 / Medium 🟡 / High 🔴 risk.
+                        """
+                    )
+                with st.expander("How to Read the Visualizations"):
+                    st.markdown(
+                        """
+                        **PCA Projection**  
+                        - Reduces all numeric inputs into two principal components (PC1 & PC2).  
+                        - Background dots = synthetic patient cohort (AFib vs. no AFib).  
+                        - Large red dot = your individual feature profile.
+            
+                        **Outcome‑Stratified Histograms**  
+                        For each of your ECG values, we show where you fall relative to the simulated AFib and non‑AFib populations:  
+                        - Age (years)  
+                        - Heart Rate (bpm)  
+                        - PR Interval (ms)  
+                        - QRS Duration (ms)  
+                        - QTc Interval (ms)  
+                        """
+                    )
+                with st.expander("ECG Feature Definitions"):
+                    st.markdown(
+                        """
+                        - **Heart Rate (bpm)**: Beats per minute  
+                        - **PR Interval (ms)**: Time from atrial to ventricular depolarization  
+                        - **QRS Duration (ms)**: Time for ventricular depolarization  
+                        - **QTc Interval (ms)**: QT interval corrected for heart rate  
+                        """
+                    )
+                with st.expander("Synthetic Data Disclaimer"):
+                    st.markdown(
+                        """
+                        All cohort distributions and PCA backdrops are **synthetic** and do **not** reflect any real patient records.  
+                        They were generated solely to illustrate your profile’s position within a plausible population, while preserving privacy.
+                        """
+                    )
+                    
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
 
