@@ -277,6 +277,8 @@ if submit_flag:
             with tab1:
                 results = make_prediction(form_values)
                 display_results(form_values["patient_id"], results)
+                st.badge("⚠️ The dataset shown here is simulated and does **not** represent the actual data used to train and evaluate the model. It was generated to approximate real-world distributions while maintaining data privacy.",
+                         color="gray")
                 c1, c2 = st.columns(2)
                 with c1:
                     df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
@@ -293,8 +295,6 @@ if submit_flag:
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
-                st.badge("⚠️ The dataset shown here is simulated and does **not** represent the actual data used to train and evaluate the model. It was generated to approximate real-world distributions while maintaining data privacy.",
-                         color="gray")
             with tab2:
                 st.write("ℹ️ This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
         except Exception as e:
