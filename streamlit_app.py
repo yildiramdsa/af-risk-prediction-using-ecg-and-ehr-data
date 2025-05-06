@@ -184,9 +184,14 @@ mandatory_fields = [
     "ecg_resting_qtc"
 ]
 
+
+
+
+
 img_c1, img_c2, img_c3 = st.columns(3)
 with img_c2:
     st.image("title.png", width=300)
+  
 st.title("Risk Prediction for Atrial Fibrillation")
 st.badge("All fields marked with ⚠️ are required. Please fill them out before submitting.", color="gray")
 
@@ -247,7 +252,8 @@ def render_form():
         form_values["ecg_resting_pr"] = ecg_c1.number_input("PR Interval (ms) ⚠️", min_value=0, value=None)
         form_values["ecg_resting_qrs"] = ecg_c2.number_input("QRS Duration (ms) ⚠️", min_value=0, value=None)
         form_values["ecg_resting_qtc"] = ecg_c2.number_input("QTc Interval (ms) ⚠️", min_value=0, value=None)
-        
+        st.divider()
+
         st.subheader("ECG Morphology & Conduction")
         st.caption("Select all that apply.")
         ecg_c3, ecg_c4, ecg_c5 = st.columns(3)
@@ -262,7 +268,7 @@ def render_form():
         form_values["ecg_resting_bifascicular_block"] = 1 if ecg_c5.checkbox("Bifascicular block") else 0
         form_values["ecg_resting_trifascicular_block"] = 1 if ecg_c5.checkbox("Trifascicular block") else 0
         form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if ecg_c5.checkbox("Intraventricular conduction delay") else 0
-        
+
         submit_flag = st.form_submit_button("Submit for Risk Prediction 🚀")
         save_flag = st.form_submit_button("Save Patient Record ☁️")
         return submit_flag, save_flag
@@ -279,6 +285,10 @@ if submit_flag:
         df_input = pd.DataFrame([form_values])
         try:
             tab1, tab2 = st.tabs(["Summary", "Read More"])
+
+
+
+
             
             with tab1:
                 results = make_prediction(form_values)
@@ -301,12 +311,20 @@ if submit_flag:
                 with c2:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
+                st.subheader("ECG Feature Distributions Compared to AFib Population")
+                c1, c2, c3, c4 = st.columns(2)
+                with c1:
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (HR) Distribution")
+                with c2:
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration Distribution")
+                with c3:
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval Distribution")
+                with c4:
+                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval Distribution")
             with tab2:
-                st.write("ℹ️ This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
+                st.write("This section will soon include detailed explanations of the risk models, ECG feature impacts, and interpretation guides.")
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
-
-
 
 if save_flag:
     st.info("Saving functionality is currently disabled.")
