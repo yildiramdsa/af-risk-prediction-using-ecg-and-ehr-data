@@ -14,7 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from custom_transformers import PreprocessDataTransformer
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain import RunnableSequence
+from langchain_core.runnables import RunnableSequence
 
 # --- Secrets & config ---
 deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
