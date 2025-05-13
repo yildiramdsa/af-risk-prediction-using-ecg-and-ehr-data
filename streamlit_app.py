@@ -12,9 +12,9 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from custom_transformers import PreprocessDataTransformer
-from langchain_community.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
+from langchain import RunnableSequence
 
 # --- Secrets & config ---
 deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
