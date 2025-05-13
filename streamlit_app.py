@@ -326,7 +326,6 @@ if submit_flag:
         st.session_state["form_submitted"] = True
         st.session_state["form_values"] = form_values.copy()
 
-# --- Always redraw summary & tabs if submitted ---
 if st.session_state.get("form_submitted", False):
     try:
         tab1, tab2 = st.tabs(["Summary","Read More"])
