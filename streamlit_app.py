@@ -315,119 +315,121 @@ if submit_flag:
         
     else:
         df_input = pd.DataFrame([form_values])
+        st.session_state["form_submitted"] = True
         
         try:
-            tab1, tab2 = st.tabs(["Summary", "Read More"])
-            
-            with tab1:
-                pred, score, life_yrs = make_prediction(form_values)
-                display_results(form_values["patient_id"], pred, score, life_yrs)
-                c1, c2 = st.columns(2)
-                with c1:
-                    df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
-                    x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, plot_scaler, pca)
-                    plot_pca_with_af_colors(df_plot, x_new, y_new)
-                with c2:
-                    plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age (years)")
-
-                st.subheader("ECG Feature Distributions by AFib Outcome")
-                c1, c2 = st.columns(2)
-                with c1:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (bpm)")
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration (ms)")
-                with c2:
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
-                    plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
-                st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
-                         color="gray")
+            if st.session_state.get("form_submitted"):
+                tab1, tab2 = st.tabs(["Summary", "Read More"])
                 
-                if "form_key" in st.session_state:
-                    context = generate_patient_context(form_values)
-        
-                llm = ChatOpenAI(
-                    openai_api_base = openai_api_base,
-                    openai_api_key = deepseek_api_key,
-                    model_name = model_name,
-                    temperature = 0.7
-                )
-        
-                template = """
-                You are a helpful medical assistant.
-                Use the patient's data to answer their questions clearly.
-                Search for answers in the internet if needed to answer the questions
-                Patient Data: {context}
-                Question: {question}
-                Answer:
-                """
-        
-                prompt = PromptTemplate(input_variables=["context","question"], template = template)
-                chain = LLMChain(llm = llm, prompt = prompt)
-        
-                user_query = st.text_area("Ask about your health report", key = "user_input")
-        
-                if st.button("Submit Question"):
-                    context = generate_patient_context(st.session_state.form_values)
-                    if user_query.strip():
-                        st.write(user_query)
-                        #st.session_state.chat_history.append({"role": "user", "content": user_query})
-                        with st.spinner("Generating response...."):
-                            try:
-                                answer = chain.run({"context": context, "question": user_query})
-                                st.write(answer)
-                                #st.session_state.chat_history.append({"role": "assistant", "content": answer})
-                            except Exception as e:
-                                st.write("error")
-    
-            with tab2:
-                st.header("Learn More About the Dashboard")
-                with st.expander("Risk Model & Feature Set"):
-                    st.markdown(
-                        """
-                        We use an **XGBoost** classifier trained on the following feature groups to estimate your AFib risk:
-                        
-                        - **Demographics**: Age at ECG, Biological sex  
-                        - **Disease History**: Acute myocarditis, Pericarditis, Aortic dissection  
-                        - **Events & Procedures**: Heart failure admission, Acute MI, Unstable angina, Stroke, TIA, PCI, CABG, LVAD implantation, Heart transplantation  
-                        - **Implanted Devices**: Permanent pacemaker, CRT device, Implantable cardioverter‑defibrillator (ICD)  
-                        - **ECG Measurements**: Heart Rate (bpm), PR Interval (ms), QRS Duration (ms), QTc Interval (ms)  
-                        - **ECG Conduction Flags**: Paced rhythm, Bigeminy, LBBB, RBBB, Incomplete blocks, LAFB, LPFB, Bifascicular/Trifascicular block, Conduction delay  
+                with tab1:
+                    pred, score, life_yrs = make_prediction(form_values)
+                    display_results(form_values["patient_id"], pred, score, life_yrs)
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
+                        x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, plot_scaler, pca)
+                        plot_pca_with_af_colors(df_plot, x_new, y_new)
+                    with c2:
+                        plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age (years)")
+
+                    st.subheader("ECG Feature Distributions by AFib Outcome")
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (bpm)")
+                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration (ms)")
+                    with c2:
+                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
+                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
+                    st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
+                            color="gray")
+                    
+                    if "form_key" in st.session_state:
+                        context = generate_patient_context(form_values)
             
-                        The model outputs a probability of new‑onset AFib, displayed as Low 🟢 / Medium 🟡 / High 🔴 risk.
-                        """
+                    llm = ChatOpenAI(
+                        openai_api_base = openai_api_base,
+                        openai_api_key = deepseek_api_key,
+                        model_name = model_name,
+                        temperature = 0.7
                     )
-                with st.expander("How to Read the Visualizations"):
-                    st.markdown(
-                        """
-                        **PCA Projection**  
-                        - Reduces all numeric inputs into two principal components (PC1 & PC2).  
-                        - Background dots = synthetic patient cohort (AFib vs. no AFib).  
-                        - Large red dot = your individual feature profile.
             
-                        **Outcome‑Stratified Histograms**  
-                        For each of your ECG values, we show where you fall relative to the simulated AFib and non‑AFib populations:  
-                        - Age (years)  
-                        - Heart Rate (bpm)  
-                        - PR Interval (ms)  
-                        - QRS Duration (ms)  
-                        - QTc Interval (ms)  
-                        """
-                    )
-                with st.expander("ECG Feature Definitions"):
-                    st.markdown(
-                        """
-                        - **Heart Rate (bpm)**: Beats per minute  
-                        - **PR Interval (ms)**: Time from atrial to ventricular depolarization  
-                        - **QRS Duration (ms)**: Time for ventricular depolarization  
-                        - **QTc Interval (ms)**: QT interval corrected for heart rate  
-                        """
-                    )
-                with st.expander("Synthetic Data Disclaimer"):
-                    st.markdown(
-                        """
-                        All cohort distributions and PCA backdrops are **synthetic** and do **not** reflect any real patient records.  
-                        They were generated solely to illustrate your profile’s position within a plausible population, while preserving privacy.
-                        """
-                    )
+                    template = """
+                    You are a helpful medical assistant.
+                    Use the patient's data to answer their questions clearly.
+                    Search for answers in the internet if needed to answer the questions
+                    Patient Data: {context}
+                    Question: {question}
+                    Answer:
+                    """
+            
+                    prompt = PromptTemplate(input_variables=["context","question"], template = template)
+                    chain = LLMChain(llm = llm, prompt = prompt)
+            
+                    user_query = st.text_area("Ask about your health report", key = "user_input")
+            
+                    if st.button("Submit Question"):
+                        context = generate_patient_context(st.session_state.form_values)
+                        if user_query.strip():
+                            st.write(user_query)
+                            #st.session_state.chat_history.append({"role": "user", "content": user_query})
+                            with st.spinner("Generating response...."):
+                                try:
+                                    answer = chain.run({"context": context, "question": user_query})
+                                    st.write(answer)
+                                    #st.session_state.chat_history.append({"role": "assistant", "content": answer})
+                                except Exception as e:
+                                    st.write("error")
+        
+                with tab2:
+                    st.header("Learn More About the Dashboard")
+                    with st.expander("Risk Model & Feature Set"):
+                        st.markdown(
+                            """
+                            We use an **XGBoost** classifier trained on the following feature groups to estimate your AFib risk:
+                            
+                            - **Demographics**: Age at ECG, Biological sex  
+                            - **Disease History**: Acute myocarditis, Pericarditis, Aortic dissection  
+                            - **Events & Procedures**: Heart failure admission, Acute MI, Unstable angina, Stroke, TIA, PCI, CABG, LVAD implantation, Heart transplantation  
+                            - **Implanted Devices**: Permanent pacemaker, CRT device, Implantable cardioverter‑defibrillator (ICD)  
+                            - **ECG Measurements**: Heart Rate (bpm), PR Interval (ms), QRS Duration (ms), QTc Interval (ms)  
+                            - **ECG Conduction Flags**: Paced rhythm, Bigeminy, LBBB, RBBB, Incomplete blocks, LAFB, LPFB, Bifascicular/Trifascicular block, Conduction delay  
+                
+                            The model outputs a probability of new‑onset AFib, displayed as Low 🟢 / Medium 🟡 / High 🔴 risk.
+                            """
+                        )
+                    with st.expander("How to Read the Visualizations"):
+                        st.markdown(
+                            """
+                            **PCA Projection**  
+                            - Reduces all numeric inputs into two principal components (PC1 & PC2).  
+                            - Background dots = synthetic patient cohort (AFib vs. no AFib).  
+                            - Large red dot = your individual feature profile.
+                
+                            **Outcome‑Stratified Histograms**  
+                            For each of your ECG values, we show where you fall relative to the simulated AFib and non‑AFib populations:  
+                            - Age (years)  
+                            - Heart Rate (bpm)  
+                            - PR Interval (ms)  
+                            - QRS Duration (ms)  
+                            - QTc Interval (ms)  
+                            """
+                        )
+                    with st.expander("ECG Feature Definitions"):
+                        st.markdown(
+                            """
+                            - **Heart Rate (bpm)**: Beats per minute  
+                            - **PR Interval (ms)**: Time from atrial to ventricular depolarization  
+                            - **QRS Duration (ms)**: Time for ventricular depolarization  
+                            - **QTc Interval (ms)**: QT interval corrected for heart rate  
+                            """
+                        )
+                    with st.expander("Synthetic Data Disclaimer"):
+                        st.markdown(
+                            """
+                            All cohort distributions and PCA backdrops are **synthetic** and do **not** reflect any real patient records.  
+                            They were generated solely to illustrate your profile’s position within a plausible population, while preserving privacy.
+                            """
+                        )
                     
         except Exception as e:
             st.error(f"An error occurred during prediction: {e}")
