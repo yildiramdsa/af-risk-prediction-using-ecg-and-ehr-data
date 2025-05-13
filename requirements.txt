@@ -7,3 +7,7 @@ seaborn==0.13.2
 scikit-learn==1.6.1
 xgboost==3.0.0
 lifelines==0.29.0
+langchain-community
+langchain-experimental
+openai
+sentence-transformers

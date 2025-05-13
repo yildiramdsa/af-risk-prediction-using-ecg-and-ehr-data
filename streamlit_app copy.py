@@ -12,13 +12,6 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from custom_transformers import PreprocessDataTransformer
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
-
-deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
-model_name = st.secrets['MODEL_NAME']
-openai_api_base = st.secrets['OPENAI_API_BASE']
 
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
@@ -111,55 +104,6 @@ def plot_distribution_with_afib_hue(df, form_values, feature_name, title):
     ax.set_xlabel(feature_name)
     ax.set_ylabel("Frequency")
     st.pyplot(fig)
-
-def generate_patient_context(values):
-    context = f"""
-    The patient {values['patient_id']} is {values['demographics_age_index_ecg']} and sex {values['demographics_birth_sex']}.
-    The patient has a heart rate of {values['ecg_resting_hr']}, PR interval value of {values['ecg_resting_pr']}, QRS curve value of {values['ecg_resting_qrs']}, and corrected QT value of {values['ecg_resting_qtc']}
-    """
-    conditions = {
-        "myocarditis_icd10_prior": "A prior history of Acute Myocarditis",
-        "pericarditis_icd10_prior": "A prior history of Acute Pericarditis",
-        "aortic_dissection_icd10_prior": "A prior history of Aortic Dissection",
-        "ecg_resting_paced": "Heart rhythm is paced",
-        "ecg_resting_bigeminy": "Heart rhythm is bigeminy",
-        "ecg_resting_LBBB": "LBBB QRS Morphology",
-        "ecg_resting_RBBB": "RBBB QRS Morphology",
-        "ecg_resting_incomplete_LBBB": "Incomplete LBBB QRS Morphology",
-        "ecg_resting_incomplete_RBBB": "Incomplete RBBB QRS Morphology",
-        "ecg_resting_LAFB": "LAFB QRS Morphology",
-        "ecg_resting_LPFB": "LPFB QRS Morphology",
-        "ecg_resting_bifascicular_block": "Bifascicular block in heart rhythm",
-        "ecg_resting_trifascicular_block": "Trifascular block in heart rhythm",
-        "ecg_resting_intraventricular_conduction_delay": "Intraventricular condition delay in heart rhythm",
-        "event_cv_hf_admission_icd10_prior": "A history of heart failure admission",
-        "event_cv_cad_acs_acute_mi_icd10_prior": "History of myocardial infarction",
-        "event_cv_cad_acs_unstable_angina_icd10_prior": "History of unstable angine",
-        "event_cv_cad_acs_other_icd10_prior": "history of other acute coronary syndrome",
-        "event_cv_ep_vt_any_icd10_prior": "History of ventriculat tachycardia",
-        "event_cv_ep_sca_survived_icd10_cci_prior": "Has survived sudden cardiac arrest",
-        "event_cv_cns_stroke_ischemic_icd10_prior": "History of Acute ischemic stroke",
-        "event_cv_cns_stroke_hemorrh_icd10_prior": "History of Acute hemorrhagic stroke",
-        "event_cv_cns_tia_icd10_prior": "Has had a transient ischemic attack",
-        "pci_prior": "Has had percutaneous coronary intervention",
-        "cabg_prior": "Has had coronary artery bypass grafting procedure",
-        "transplant_heart_cci_prior": "Has had a heart transplant",
-        "lvad_cci_prior": "Has had LVAD implantation procedure",
-        "pacemaker_permanent_cci_prior": "Have a permanent pacemaker implantation",
-        "crt_cci_prior": "Has had a cardiac resynchronization therapy (CRT) Implantation",
-        "icd_cci_prior": "Has had Internal Cardioverter defibrillator implantation",
-    }
- 
-    condition_statements = [
-        f"The patient has {desc}." for key, desc in conditions.items() if values.get(key, 0) == 1
-    ]
- 
-    if condition_statements:
-        context += "\n" + "\n".join(condition_statements)
-    else:
-        context += "\nThe patient has no conditions on record"
-   
-    return context.strip()
 
 default_values = {
     "patient_id": None,
@@ -340,44 +284,7 @@ if submit_flag:
                     plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
                 st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
                          color="gray")
-                
-                if "form_key" in st.session_state:
-                    context = generate_patient_context(st.session_state.form_values)
-        
-                llm = ChatOpenAI(
-                    openai_api_base = openai_api_base,
-                    openai_api_key = deepseek_api_key,
-                    model_name = model_name,
-                    temperature = 0.7
-                )
-        
-                template = """
-                You are a helpful medical assistant.
-                Use the patient's data to answer their questions clearly.
-                Search for answers in the internet if needed to answer the questions
-                Patient Data: {context}
-                Question: {question}
-                Answer:
-                """
-        
-                prompt = PromptTemplate(input_variables=["context","question"], template = template)
-                chain = LLMChain(llm = llm, prompt = prompt)
-        
-                user_query = st.text_area("Ask about your health report", key = "user_input")
-        
-                if st.button("Submit Question"):
-                    context = generate_patient_context(st.session_state.form_values)
-                    if user_query.strip():
-                        st.write(user_query)
-                        #st.session_state.chat_history.append({"role": "user", "content": user_query})
-                        with st.spinner("Generating response...."):
-                            try:
-                                answer = chain.run({"context": context, "question": user_query})
-                                st.write(answer)
-                                #st.session_state.chat_history.append({"role": "assistant", "content": answer})
-                            except Exception as e:
-                                st.write("error")
-    
+            
             with tab2:
                 st.header("Learn More About the Dashboard")
                 with st.expander("Risk Model & Feature Set"):
