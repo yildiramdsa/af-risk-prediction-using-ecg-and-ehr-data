@@ -342,7 +342,7 @@ if submit_flag:
                          color="gray")
                 
                 if "form_key" in st.session_state:
-                    context = generate_patient_context(st.session_state.form_values)
+                    context = generate_patient_context(form_values)
         
                 llm = ChatOpenAI(
                     openai_api_base = openai_api_base,
