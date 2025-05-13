@@ -22,6 +22,15 @@ openai_api_base = st.secrets['OPENAI_API_BASE']
 
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
+if "form_submitted" not in st.session_state:
+    st.session_state["form_submitted"] = False
+
+if "form_values" not in st.session_state:
+    st.session_state["form_values"] = {}
+
+if "user_query_submitted" not in st.session_state:
+    st.session_state["user_query_submitted"] = False
+
 model = joblib.load("model.pkl")
 data = pd.read_csv("synthetic_data.csv")
 
@@ -316,6 +325,7 @@ if submit_flag:
     else:
         df_input = pd.DataFrame([form_values])
         st.session_state["form_submitted"] = True
+        st.session_state["form_values"] = form_values.copy()
         
         try:
             if st.session_state.get("form_submitted"):
@@ -368,6 +378,7 @@ if submit_flag:
                     user_query = st.text_area("Ask about your health report", key = "user_input")
             
                     if st.button("Submit Question"):
+                        st.session_state["user_query_submitted"] = True
                         context = generate_patient_context(st.session_state.form_values)
                         if user_query.strip():
                             st.write(user_query)
