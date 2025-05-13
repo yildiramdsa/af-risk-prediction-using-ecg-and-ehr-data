@@ -16,12 +16,13 @@ from langchain_community.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 
+# --- Secrets & config ---
 deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
-model_name = st.secrets['MODEL_NAME']
-openai_api_base = st.secrets['OPENAI_API_BASE']
-
+model_name       = st.secrets['MODEL_NAME']
+openai_api_base  = st.secrets['OPENAI_API_BASE']
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
+# --- Session‐state defaults ---
 if 'form_submitted' not in st.session_state:
     st.session_state['form_submitted'] = False
 if 'form_values' not in st.session_state:
@@ -29,9 +30,11 @@ if 'form_values' not in st.session_state:
 if 'user_query_submitted' not in st.session_state:
     st.session_state['user_query_submitted'] = False
 
+# --- Load model & data ---
 model = joblib.load("model.pkl")
-data = pd.read_csv("synthetic_data.csv")
+data  = pd.read_csv("synthetic_data.csv")
 
+# --- Helper functions (PCA, plotting, prediction, context gen) ---
 def create_pca_for_plotting(df, input_keys):    
     # copy & select only the keys that actually exist
     d = df.copy()
@@ -319,133 +322,90 @@ with form_container:
 if submit_flag:
     if any(not is_valid(form_values[f]) for f in mandatory_fields):
         st.error("Please complete all mandatory fields with valid values.")
-        
     else:
-        df_input = pd.DataFrame([form_values])
         st.session_state["form_submitted"] = True
         st.session_state["form_values"] = form_values.copy()
-        
-        try:
-            if st.session_state.get("form_submitted"):
-                tab1, tab2 = st.tabs(["Summary", "Read More"])
-                
-                with tab1:
-                    pred, score, life_yrs = make_prediction(form_values)
-                    display_results(form_values["patient_id"], pred, score, life_yrs)
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        df_plot, plot_scaler, pca, common_cols = create_pca_for_plotting(data, form_values.keys())
-                        x_new, y_new = transform_new_input_for_plotting(form_values, common_cols, plot_scaler, pca)
-                        plot_pca_with_af_colors(df_plot, x_new, y_new)
-                    with c2:
-                        plot_distribution_with_afib_hue(data, form_values, "demographics_age_index_ecg", "Age (years)")
 
-                    st.subheader("ECG Feature Distributions by AFib Outcome")
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_hr", "Heart Rate (bpm)")
-                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qrs", "QRS Duration (ms)")
-                    with c2:
-                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_pr", "PR Interval (ms)")
-                        plot_distribution_with_afib_hue(data, form_values, "ecg_resting_qtc", "QTc Interval (ms)")
-                    st.badge("⚠️ All distributions and PCA backdrops are simulated and do not represent the actual training or evaluation data. They were created to mimic real-world patterns while ensuring data privacy.",
-                            color="gray")
-                    
-                    if "form_key" in st.session_state:
-                        context = generate_patient_context(form_values)
-            
-                    llm = ChatOpenAI(
-                        openai_api_base = openai_api_base,
-                        openai_api_key = deepseek_api_key,
-                        model_name = model_name,
-                        temperature = 0.7
+# --- Always redraw summary & tabs if submitted ---
+if st.session_state.get("form_submitted", False):
+    try:
+        tab1, tab2 = st.tabs(["Summary","Read More"])
+
+        # — SUMMARY TAB —
+        with tab1:
+            vals = st.session_state["form_values"]
+            lvl, score, yrs = make_prediction(vals)
+            display_results(vals["patient_id"], lvl, score, yrs)
+
+            # PCA + Age
+            df_plot, scaler, pca, cols = create_pca_for_plotting(data, vals.keys())
+            x_new, y_new = transform_new_input_for_plotting(vals, cols, scaler, pca)
+            plot_pca_with_af_colors(df_plot, x_new, y_new)
+            plot_distribution_with_afib_hue(data, vals, "demographics_age_index_ecg", "Age (y)")
+
+            # ECG distributions
+            st.subheader("ECG Feature Distributions")
+            c1,c2 = st.columns(2)
+            with c1:
+                plot_distribution_with_afib_hue(data, vals, "ecg_resting_hr", "Heart Rate (bpm)")
+                plot_distribution_with_afib_hue(data, vals, "ecg_resting_qrs", "QRS Duration (ms)")
+            with c2:
+                plot_distribution_with_afib_hue(data, vals, "ecg_resting_pr", "PR Interval (ms)")
+                plot_distribution_with_afib_hue(data, vals, "ecg_resting_qtc", "QTc Interval (ms)")
+            st.badge("⚠️ Synthetic cohort only—illustrative purposes.", color="gray")
+
+            # Q&A UI
+            question = st.text_area("Ask about your health report")
+            if st.button("Ask Question", key="ask_question_btn"):
+                st.session_state["user_query_submitted"] = True
+
+            if st.session_state["user_query_submitted"] and question.strip():
+                context = generate_patient_context(vals)
+                chain = LLMChain(
+                    llm=ChatOpenAI(
+                        openai_api_base=openai_api_base,
+                        openai_api_key=deepseek_api_key,
+                        model_name=model_name,
+                        temperature=0.7
+                    ),
+                    prompt=PromptTemplate(
+                        input_variables=["context","question"],
+                        template=(
+                            "You are a helpful assistant.\n"
+                            "Context: {context}\n"
+                            "Question: {question}\n"
+                            "Answer:"
+                        )
                     )
-            
-                    template = """
-                    You are a helpful medical assistant.
-                    Use the patient's data to answer their questions clearly.
-                    Search for answers in the internet if needed to answer the questions
-                    Patient Data: {context}
-                    Question: {question}
-                    Answer:
-                    """
-            
-                    prompt = PromptTemplate(input_variables=["context","question"], template = template)
-                    chain = LLMChain(llm = llm, prompt = prompt)
+                )
+                with st.spinner("Generating response…"):
+                    ans = chain.run({"context": context, "question": question})
+                    st.write(ans)
 
-                    # inside tab1, after you draw all the metrics & plots:
-                    question = st.text_area('Ask about your health report', key='user_question')
-                    if st.button('Submit Question'):
-                        st.session_state['user_query_submitted'] = True
+        # — READ MORE TAB —
+        with tab2:
+            st.header("Learn More About the Dashboard")
+            with st.expander("Risk Model & Feature Set"):
+                st.markdown("""
+                - **Demographics**: Age, Sex  
+                - **History**: Myocarditis, Pericarditis, …  
+                - **ECG**: HR, PR, QRS, QTc  
+                - **…**  
+                """)
+            # … other expanders …
 
-                    if st.session_state['user_query_submitted'] and question.strip():
-                        context = generate_patient_context(st.session_state['form_values'])
-                        llm = ChatOpenAI(openai_api_base=openai_api_base, openai_api_key=deepseek_api_key, model_name=model_name)
-                        prompt = PromptTemplate(input_variables=['context','question'], template="""You are a helpful assistant. Context: {context} Question: {question} Answer:""")
-                        chain = LLMChain(llm=llm, prompt=prompt)
-                        with st.spinner('Generating response...'):
-                            answer = chain.run({'context': context, 'question': question})
-                            st.write(answer)
-        
-                with tab2:
-                    st.header("Learn More About the Dashboard")
-                    with st.expander("Risk Model & Feature Set"):
-                        st.markdown(
-                            """
-                            We use an **XGBoost** classifier trained on the following feature groups to estimate your AFib risk:
-                            
-                            - **Demographics**: Age at ECG, Biological sex  
-                            - **Disease History**: Acute myocarditis, Pericarditis, Aortic dissection  
-                            - **Events & Procedures**: Heart failure admission, Acute MI, Unstable angina, Stroke, TIA, PCI, CABG, LVAD implantation, Heart transplantation  
-                            - **Implanted Devices**: Permanent pacemaker, CRT device, Implantable cardioverter‑defibrillator (ICD)  
-                            - **ECG Measurements**: Heart Rate (bpm), PR Interval (ms), QRS Duration (ms), QTc Interval (ms)  
-                            - **ECG Conduction Flags**: Paced rhythm, Bigeminy, LBBB, RBBB, Incomplete blocks, LAFB, LPFB, Bifascicular/Trifascicular block, Conduction delay  
-                
-                            The model outputs a probability of new‑onset AFib, displayed as Low 🟢 / Medium 🟡 / High 🔴 risk.
-                            """
-                        )
-                    with st.expander("How to Read the Visualizations"):
-                        st.markdown(
-                            """
-                            **PCA Projection**  
-                            - Reduces all numeric inputs into two principal components (PC1 & PC2).  
-                            - Background dots = synthetic patient cohort (AFib vs. no AFib).  
-                            - Large red dot = your individual feature profile.
-                
-                            **Outcome‑Stratified Histograms**  
-                            For each of your ECG values, we show where you fall relative to the simulated AFib and non‑AFib populations:  
-                            - Age (years)  
-                            - Heart Rate (bpm)  
-                            - PR Interval (ms)  
-                            - QRS Duration (ms)  
-                            - QTc Interval (ms)  
-                            """
-                        )
-                    with st.expander("ECG Feature Definitions"):
-                        st.markdown(
-                            """
-                            - **Heart Rate (bpm)**: Beats per minute  
-                            - **PR Interval (ms)**: Time from atrial to ventricular depolarization  
-                            - **QRS Duration (ms)**: Time for ventricular depolarization  
-                            - **QTc Interval (ms)**: QT interval corrected for heart rate  
-                            """
-                        )
-                    with st.expander("Synthetic Data Disclaimer"):
-                        st.markdown(
-                            """
-                            All cohort distributions and PCA backdrops are **synthetic** and do **not** reflect any real patient records.  
-                            They were generated solely to illustrate your profile’s position within a plausible population, while preserving privacy.
-                            """
-                        )
-                    
-        except Exception as e:
-            st.error(f"An error occurred during prediction: {e}")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
 
+# --- Save placeholder ---
 if save_flag:
-    st.info("Saving functionality is currently disabled.")
+    st.info("Saving is disabled.")
 
+# --- Clear Form handler must also reset flags ---
 if st.button("Clear Form for New Entry 🗑️", key="clear_form_btn"):
-    st.session_state["form_key"] = str(uuid.uuid4())
+    st.session_state["form_key"]             = str(uuid.uuid4())
+    st.session_state["form_submitted"]       = False
+    st.session_state["user_query_submitted"] = False
     form_container.empty()
     with form_container:
-        render_form()
+        submit_flag, save_flag = render_form()
