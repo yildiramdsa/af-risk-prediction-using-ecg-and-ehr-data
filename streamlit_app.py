@@ -359,11 +359,8 @@ if st.session_state.get("form_submitted", False):
                 st.session_state["user_query_submitted"] = True
 
             if st.session_state["user_query_submitted"] and question.strip():
-                # prepare context
                 vals = st.session_state["form_values"]
                 context = generate_patient_context(vals)
-
-                # build prompt + LLM
                 prompt = PromptTemplate(
                     input_variables=["context","question"],
                     template=(
@@ -376,14 +373,10 @@ if st.session_state.get("form_submitted", False):
                 llm = ChatOpenAI(
                     openai_api_base=openai_api_base,
                     openai_api_key=deepseek_api_key,
-                    model=model_name,        # note: it's 'model=', not 'model_name='
+                    model=model_name,
                     temperature=0.7
                 )
-
-                # compose into a RunnableSequence instead of LLMChain
                 chain = prompt | llm
-
-                # invoke it
                 with st.spinner("Generating response…"):
                     ans = chain.invoke({"context": context, "question": question})
                     st.write(ans)
