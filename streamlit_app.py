@@ -22,14 +22,12 @@ openai_api_base = st.secrets['OPENAI_API_BASE']
 
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
-if "form_submitted" not in st.session_state:
-    st.session_state["form_submitted"] = False
-
-if "form_values" not in st.session_state:
-    st.session_state["form_values"] = {}
-
-if "user_query_submitted" not in st.session_state:
-    st.session_state["user_query_submitted"] = False
+if 'form_submitted' not in st.session_state:
+    st.session_state['form_submitted'] = False
+if 'form_values' not in st.session_state:
+    st.session_state['form_values'] = {}
+if 'user_query_submitted' not in st.session_state:
+    st.session_state['user_query_submitted'] = False
 
 model = joblib.load("model.pkl")
 data = pd.read_csv("synthetic_data.csv")
@@ -374,22 +372,20 @@ if submit_flag:
             
                     prompt = PromptTemplate(input_variables=["context","question"], template = template)
                     chain = LLMChain(llm = llm, prompt = prompt)
-            
-                    user_query = st.text_area("Ask about your health report", key = "user_input")
-            
-                    if st.button("Submit Question"):
-                        st.session_state["user_query_submitted"] = True
-                        context = generate_patient_context(st.session_state.form_values)
-                        if user_query.strip():
-                            st.write(user_query)
-                            #st.session_state.chat_history.append({"role": "user", "content": user_query})
-                            with st.spinner("Generating response...."):
-                                try:
-                                    answer = chain.run({"context": context, "question": user_query})
-                                    st.write(answer)
-                                    #st.session_state.chat_history.append({"role": "assistant", "content": answer})
-                                except Exception as e:
-                                    st.write("error")
+
+                    # inside tab1, after you draw all the metrics & plots:
+                    question = st.text_area('Ask about your health report', key='user_question')
+                    if st.button('Submit Question'):
+                        st.session_state['user_query_submitted'] = True
+
+                    if st.session_state['user_query_submitted'] and question.strip():
+                        context = generate_patient_context(st.session_state['form_values'])
+                        llm = ChatOpenAI(openai_api_base=openai_api_base, openai_api_key=deepseek_api_key, model_name=model_name)
+                        prompt = PromptTemplate(input_variables=['context','question'], template="""You are a helpful assistant. Context: {context} Question: {question} Answer:""")
+                        chain = LLMChain(llm=llm, prompt=prompt)
+                        with st.spinner('Generating response...'):
+                            answer = chain.run({'context': context, 'question': question})
+                            st.write(answer)
         
                 with tab2:
                     st.header("Learn More About the Dashboard")
