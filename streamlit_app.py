@@ -91,7 +91,7 @@ def display_results(pid, prediction, risk_score, estimated_life_years):
     c1, c2, c3 = st.columns(3)
     c1.metric("AFib Risk Level:", prediction)
     c2.metric("Risk Probability:", f"{risk_score:.2f}")
-    c3.metric("Expected AFib-Free Years", f"{estimated_life_years:.1f} yrs")
+    c3.metric("Expected AFib-Free Years:", f"{estimated_life_years:.1f} yrs")
 
 def plot_distribution_with_afib_hue(df, form_values, feature_name, title):
     fig, ax = plt.subplots(figsize=(8, 5))
