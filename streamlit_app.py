@@ -33,8 +33,8 @@ if 'user_query_submitted' not in st.session_state:
     st.session_state['user_query_submitted'] = False
 
 # --- Load model & data ---
-model = joblib.load("assets/model.pkl")
-data  = pd.read_csv("data/synthetic_data.csv")
+model = joblib.load("model.pkl")
+data  = pd.read_csv("synthetic_data.csv")
 
 # --- Helper functions (PCA, plotting, prediction, context gen) ---
 def create_pca_for_plotting(df, input_keys):    
