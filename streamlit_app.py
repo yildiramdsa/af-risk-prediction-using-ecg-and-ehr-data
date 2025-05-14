@@ -15,11 +15,13 @@ from custom_transformers import PreprocessDataTransformer
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
+from langchain.chains import LLMChain
 
 # --- Secrets & config ---
 deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
 model_name       = st.secrets['MODEL_NAME']
 openai_api_base  = st.secrets['OPENAI_API_BASE']
+
 st.set_page_config(page_title="AFib Risk Prediction", layout="wide")
 
 # --- Session‐state defaults ---
@@ -31,8 +33,8 @@ if 'user_query_submitted' not in st.session_state:
     st.session_state['user_query_submitted'] = False
 
 # --- Load model & data ---
-model = joblib.load("model.pkl")
-data  = pd.read_csv("synthetic_data.csv")
+model = joblib.load("assets/model.pkl")
+data  = pd.read_csv("data/synthetic_data.csv")
 
 # --- Helper functions (PCA, plotting, prediction, context gen) ---
 def create_pca_for_plotting(df, input_keys):    
@@ -231,8 +233,8 @@ mandatory_fields = [
 
 img_c1, img_c2, img_c3 = st.columns(3)
 with img_c2:
-    st.image("title.png", width=300)
-  
+    st.image("assets/title.png", width=300)
+
 st.title("Risk Prediction for Atrial Fibrillation")
 st.badge("All fields marked with ⚠️ are required. Please fill them out before submitting.", color="gray")
 
@@ -252,7 +254,7 @@ def render_form():
         form_values["demographics_birth_sex"] = g_options[sel_gender]
         form_values["demographics_age_index_ecg"] = pi_c3.number_input("Age (years) ⚠️", min_value=0, max_value=120, value=0)
         st.divider()
-
+ 
         st.subheader("Cardiovascular Diseases")
         st.caption("Select all that apply.")
         cd_c1, cd_c2, cd_c3 = st.columns(3)
@@ -260,7 +262,7 @@ def render_form():
         form_values["pericarditis_icd10_prior"] = 1 if cd_c2.checkbox("Acute pericarditis") else 0
         form_values["aortic_dissection_icd10_prior"] = 1 if cd_c3.checkbox("Aortic dissection") else 0
         st.divider()
-
+ 
         st.subheader("Cardiovascular Events & Procedures")
         st.caption("Select all that apply.")
         c1_ced, c2_ced, c3_ced = st.columns(3)
@@ -278,7 +280,7 @@ def render_form():
         form_values["transplant_heart_cci_prior"] = 1 if c3_ced.checkbox("Heart transplantation") else 0
         form_values["lvad_cci_prior"] = 1 if c3_ced.checkbox("LVAD implantation") else 0
         st.divider()
-
+ 
         st.subheader("Cardiovascular Devices")
         st.caption("Select all that apply.")
         cdev_c1, cdev_c2, cdev_c3 = st.columns(3)
@@ -286,7 +288,7 @@ def render_form():
         form_values["crt_cci_prior"] = 1 if cdev_c2.checkbox("CRT device") else 0
         form_values["icd_cci_prior"] = 1 if cdev_c3.checkbox("Implantable cardioverter‑defibrillator (ICD)") else 0
         st.divider()
-
+ 
         st.subheader("12‑Lead ECG Measurements")
         ecg_c1, ecg_c2 = st.columns(2)
         form_values["ecg_resting_hr"] = ecg_c1.number_input("Heart Rate (bpm) ⚠️", step=1, value=None)
@@ -294,7 +296,7 @@ def render_form():
         form_values["ecg_resting_qrs"] = ecg_c2.number_input("QRS Duration (ms) ⚠️", min_value=0, value=None)
         form_values["ecg_resting_qtc"] = ecg_c2.number_input("QTc Interval (ms) ⚠️", min_value=0, value=None)
         st.divider()
-
+ 
         st.subheader("ECG Morphology & Conduction")
         st.caption("Select all that apply.")
         ecg_c3, ecg_c4, ecg_c5 = st.columns(3)
@@ -309,7 +311,7 @@ def render_form():
         form_values["ecg_resting_bifascicular_block"] = 1 if ecg_c5.checkbox("Bifascicular block") else 0
         form_values["ecg_resting_trifascicular_block"] = 1 if ecg_c5.checkbox("Trifascicular block") else 0
         form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if ecg_c5.checkbox("Intraventricular conduction delay") else 0
-
+ 
         submit_flag = st.form_submit_button("Submit for Risk Prediction 🚀")
         save_flag = st.form_submit_button("Save Patient Record ☁️")
         return submit_flag, save_flag
@@ -329,19 +331,22 @@ if submit_flag:
 if st.session_state.get("form_submitted", False):
     try:
         tab1, tab2 = st.tabs(["Summary","Read More"])
-
+ 
         # — SUMMARY TAB —
         with tab1:
             vals = st.session_state["form_values"]
             lvl, score, yrs = make_prediction(vals)
             display_results(vals["patient_id"], lvl, score, yrs)
-
+ 
             # PCA + Age
             df_plot, scaler, pca, cols = create_pca_for_plotting(data, vals.keys())
             x_new, y_new = transform_new_input_for_plotting(vals, cols, scaler, pca)
-            plot_pca_with_af_colors(df_plot, x_new, y_new)
-            plot_distribution_with_afib_hue(data, vals, "demographics_age_index_ecg", "Age (y)")
-
+            c1,c2 = st.columns(2)
+            with c1:
+                plot_pca_with_af_colors(df_plot, x_new, y_new)
+            with c2:
+                plot_distribution_with_afib_hue(data, vals, "demographics_age_index_ecg", "Age (y)")
+ 
             # ECG distributions
             st.subheader("ECG Feature Distributions")
             c1,c2 = st.columns(2)
@@ -352,35 +357,39 @@ if st.session_state.get("form_submitted", False):
                 plot_distribution_with_afib_hue(data, vals, "ecg_resting_pr", "PR Interval (ms)")
                 plot_distribution_with_afib_hue(data, vals, "ecg_resting_qtc", "QTc Interval (ms)")
             st.badge("⚠️ Synthetic cohort only—illustrative purposes.", color="gray")
-
+ 
             # Q&A UI
             question = st.text_area("Ask about your health report")
             if st.button("Ask Question", key="ask_question_btn"):
                 st.session_state["user_query_submitted"] = True
-
+ 
             if st.session_state["user_query_submitted"] and question.strip():
                 vals = st.session_state["form_values"]
                 context = generate_patient_context(vals)
-                prompt = PromptTemplate(
-                    input_variables=["context","question"],
-                    template=(
-                        "You are a helpful assistant.\n"
-                        "Context: {context}\n"
-                        "Question: {question}\n"
-                        "Answer:"
-                    )
-                )
+                template = """
+                You are a helpful medical assistant.
+                Use the patient's data to answer their questions clearly.
+                Search for answers in the internet if needed to answer the questions
+                Patient Data: {context}
+                Question: {question}
+                Answer:
+                """
+ 
+                prompt = PromptTemplate(input_variables=["context","question"], template = template)
+ 
                 llm = ChatOpenAI(
                     openai_api_base=openai_api_base,
                     openai_api_key=deepseek_api_key,
                     model=model_name,
                     temperature=0.7
                 )
-                chain = prompt | llm
+ 
+                chain = LLMChain(llm = llm, prompt = prompt)
+               
                 with st.spinner("Generating response…"):
-                    ans = chain.invoke({"context": context, "question": question})
+                    ans = chain.run({"context": context, "question": question})
                     st.write(ans)
-
+ 
         # — READ MORE TAB —
         with tab2:
             st.header("Learn More About the Dashboard")
@@ -391,8 +400,36 @@ if st.session_state.get("form_submitted", False):
                 - **ECG**: HR, PR, QRS, QTc  
                 - **…**  
                 """)
-            # … other expanders …
-
+            with st.expander("Chatbot Overview"):
+                st.markdown("""
+                This AI-powered chatbot is designed to **interpret structured clinical and ECG data** and generate **clear, concise medical summaries**. It provides a natural-language explanation of key health indicators, making it suitable for both **clinical support** and **non-clinical understanding**.
+ 
+                **What It Does**
+                           
+                When provided with inputs such as age, sex, heart rate, PR interval, QRS duration, QTc, and medical history, the chatbot returns a **human-readable summary** that includes:
+ 
+                - **Vital Signs Interpretation** explains whether values like heart rate, PR interval, QRS duration, and QTc are within normal ranges.
+ 
+                - **Abnormality Detection** highlights clinical concerns such as bradycardia, heart block, or QT prolongation, if present.
+ 
+                - **Clinical Recommendations** offers actionable insights such as the need for urgent evaluation, pacemaker consideration, or further diagnostic testing.
+ 
+                - **Contextual Clarification** includes assumptions made in interpreting coded values (e.g., sex = "0" interpreted as female).
+ 
+                **Use Cases**
+                1. **Clinical Decision Support** assists healthcare providers in quickly understanding ECG findings and identifying red flags in patient data.
+ 
+                2. **Medical Education & Training** acts as a learning tool for students and trainees by explaining ECG parameters in plain language.
+ 
+                3. **Remote Monitoring Summaries** converts raw telemetry data from wearable devices or remote patient monitors into digestible reports.
+ 
+                4. **Triage Assistance** helps non-specialist medical staff or first responders make informed decisions by flagging urgent conditions.
+ 
+                5. **Second Opinion for Practitioners** provides automated, unbiased review of ECG data to complement human judgment.
+ 
+                6. **Patient-Facing Summaries (with Caution)** can be used to generate simplified explanations of ECG results for patients, though should be reviewed by a clinician.
+                """)
+ 
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
