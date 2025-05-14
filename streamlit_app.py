@@ -386,8 +386,8 @@ if st.session_state.get("form_submitted", False):
                 chain = prompt | llm
                
                 with st.spinner("Generating response…"):
-                    ans = chain.invoke({"context": context, "question": question})
-                    st.write(ans)
+                    response = chain.invoke({"context": context, "question": question})
+                    st.markdown(response.content)
  
         # — READ MORE TAB —
         with tab2:
