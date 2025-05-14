@@ -233,7 +233,7 @@ mandatory_fields = [
 
 img_c1, img_c2, img_c3 = st.columns(3)
 with img_c2:
-    st.image("assets/title.png", width=300)
+    st.image("title.png", width=300)
 
 st.title("Risk Prediction for Atrial Fibrillation")
 st.badge("All fields marked with ⚠️ are required. Please fill them out before submitting.", color="gray")
