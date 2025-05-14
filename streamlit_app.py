@@ -311,7 +311,7 @@ def render_form():
         form_values["ecg_resting_trifascicular_block"] = 1 if ecg_c5.checkbox("Trifascicular block") else 0
         form_values["ecg_resting_intraventricular_conduction_delay"] = 1 if ecg_c5.checkbox("Intraventricular conduction delay") else 0
  
-        submit_flag = st.form_submit_button("Submit for Risk Prediction 🚀")
+        submit_flag = st.form_submit_button("Submit for Risk Prediction 🩺")
         save_flag = st.form_submit_button("Save Patient Record ☁️")
         return submit_flag, save_flag
 
