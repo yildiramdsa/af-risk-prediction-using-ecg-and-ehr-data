@@ -347,7 +347,6 @@ if st.session_state.get("form_submitted", False):
                 plot_distribution_with_afib_hue(data, vals, "demographics_age_index_ecg", "Age (y)")
  
             # ECG distributions
-            st.subheader("ECG Feature Distributions")
             c1,c2 = st.columns(2)
             with c1:
                 plot_distribution_with_afib_hue(data, vals, "ecg_resting_hr", "Heart Rate (bpm)")
