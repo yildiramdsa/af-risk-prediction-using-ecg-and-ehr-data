@@ -358,7 +358,10 @@ if st.session_state.get("form_submitted", False):
                      color="gray")
  
             # Q&A UI
-            question = st.text_area("Ask about your health report")
+            st.subheader("Cardiac health summary assistant")
+            question = st.text_area(
+                "Ask a clinical question about the patient’s ECG or health summary (e.g., 'Is the QTc prolonged?', 'Any red flags?', 'What does the PR interval mean?')"
+                )
             if st.button("Ask Question", key="ask_question_btn"):
                 st.session_state["user_query_submitted"] = True
  
