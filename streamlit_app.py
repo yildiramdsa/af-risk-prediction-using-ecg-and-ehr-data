@@ -15,7 +15,6 @@ from custom_transformers import PreprocessDataTransformer
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
-from langchain.chains import LLMChain
 
 # --- Secrets & config ---
 deepseek_api_key = st.secrets['DEEPSEEK_API_KEY']
@@ -375,7 +374,7 @@ if st.session_state.get("form_submitted", False):
                 Answer:
                 """
  
-                prompt = PromptTemplate(input_variables=["context","question"], template = template)
+                prompt = PromptTemplate(input_variables=["context", "question"], template=template)
  
                 llm = ChatOpenAI(
                     openai_api_base=openai_api_base,
@@ -384,10 +383,10 @@ if st.session_state.get("form_submitted", False):
                     temperature=0.7
                 )
  
-                chain = LLMChain(llm = llm, prompt = prompt)
+                chain = prompt | llm
                
                 with st.spinner("Generating response…"):
-                    ans = chain.run({"context": context, "question": question})
+                    ans = chain.invoke({"context": context, "question": question})
                     st.write(ans)
  
         # — READ MORE TAB —
