@@ -391,14 +391,51 @@ if st.session_state.get("form_submitted", False):
  
         # — READ MORE TAB —
         with tab2:
-            st.header("Learn More About the Dashboard")
             with st.expander("Risk Model & Feature Set"):
                 st.markdown("""
-                - **Demographics**: Age, Sex  
-                - **History**: Myocarditis, Pericarditis, …  
-                - **ECG**: HR, PR, QRS, QTc  
-                - **…**  
-                """)
+                    An **XGBoost** classifier was trained on the following groups of features to estimate your risk of developing atrial fibrillation (AFib):
+                    - **Demographics**: Age at time of ECG, biological sex  
+                    - **Disease History**: Acute myocarditis, pericarditis, aortic dissection  
+                    - **Cardiovascular Events & Procedures**: Heart failure admission, acute myocardial infarction (MI), unstable angina, stroke, transient ischemic attack (TIA), PCI, CABG, LVAD implantation, heart transplantation  
+                    - **Implanted Devices**: Permanent pacemaker, CRT device, implantable cardioverter-defibrillator (ICD)  
+                    - **ECG Measurements**: Heart rate (bpm), PR interval (ms), QRS duration (ms), QTc interval (ms)  
+                    - **ECG Conduction Abnormalities**: Paced rhythm, bigeminy, LBBB, RBBB, incomplete blocks, LAFB, LPFB, bifascicular/trifascicular block, intraventricular conduction delay  
+                    The model outputs a probability of new-onset AFib, categorized as **Low** 🟢, **Medium** 🟡, or **High** 🔴 risk.
+                    """
+                )
+            with st.expander("How to Read the Visualizations"):
+                st.markdown(
+                    """
+                    **PCA Projection**  
+                    - Reduces all numeric inputs into two principal components (PC1 & PC2).  
+                    - Background dots = synthetic patient cohort (AFib vs. no AFib).  
+                    - Large red dot = your individual feature profile.
+        
+                    **Outcome‑Stratified Histograms**  
+                    For each of your ECG values, we show where you fall relative to the simulated AFib and non‑AFib populations:  
+                    - Age (years)  
+                    - Heart Rate (bpm)  
+                    - PR Interval (ms)  
+                    - QRS Duration (ms)  
+                    - QTc Interval (ms)  
+                    """
+                )
+            with st.expander("ECG Feature Definitions"):
+                st.markdown(
+                    """
+                    - **Heart Rate (bpm)**: Beats per minute  
+                    - **PR Interval (ms)**: Time from atrial to ventricular depolarization  
+                    - **QRS Duration (ms)**: Time for ventricular depolarization  
+                    - **QTc Interval (ms)**: QT interval corrected for heart rate  
+                    """
+                )
+            with st.expander("Synthetic Data Disclaimer"):
+                st.markdown(
+                    """
+                    All cohort distributions and PCA backdrops are **synthetic** and do **not** reflect any real patient records.  
+                    They were generated solely to illustrate your profile's position within a plausible population, while preserving privacy.
+                    """
+                )
             with st.expander("Chatbot Overview"):
                 st.markdown("""
                 This AI-powered chatbot is designed to **interpret structured clinical and ECG data** and generate **clear, concise medical summaries**. It provides a natural-language explanation of key health indicators, making it suitable for both **clinical support** and **non-clinical understanding**.
