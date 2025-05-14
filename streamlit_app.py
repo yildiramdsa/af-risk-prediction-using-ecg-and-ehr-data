@@ -87,7 +87,7 @@ def make_prediction(form_values):
     return prediction, risk_score, estimated_life_years
 
 def display_results(pid, prediction, risk_score, estimated_life_years):
-    st.subheader(f"Prediction Summary for Patient: `{pid}`")
+    st.subheader(f"Prediction Summary for Patient `{pid}`")
     c1, c2, c3 = st.columns(3)
     c1.metric("AFib Risk Level:", prediction)
     c2.metric("Risk Probability:", f"{risk_score:.2f}")
