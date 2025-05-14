@@ -358,7 +358,7 @@ if st.session_state.get("form_submitted", False):
                      color="gray")
  
             # Q&A UI
-            st.subheader("Cardiac health summary assistant")
+            st.subheader("Cardiac Health Summary Assistant")
             question = st.text_area(
                 "Ask a clinical question about the patient’s ECG or health summary (e.g., 'Is the QTc prolonged?', 'Any red flags?', 'What does the PR interval mean?')"
                 )
